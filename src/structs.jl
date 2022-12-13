@@ -1,18 +1,46 @@
-mutable struct ptr
+struct IDX
+    N::Int64
+    x::UnitRange{Int64}
+    phi::UnitRange{Int64}
+    Bm::UnitRange{Int64}
+    Bp::UnitRange{Int64}
+    S::UnitRange{Int64}
+    z::UnitRange{Int64}
+    function IDX(nx, nu)
+        idx_x = 1:nx
+        idx_phi = (nx + 1) : (nx + nx^2)
+        idx_Bm = (nx + nx^2 + 1) : (nx + nx^2 + nx*nu)
+        idx_Bp = (nx + nx^2 + nx*nu + 1) : (nx + nx^2 + nx*nu + nx*nu)
+        idx_S = (nx + nx^2 + 2*nx*nu + 1) : (nx + nx^2 + 2*nx*nu + nx)
+        idx_z = (2*nx + nx^2 + 2*nx*nu + 1) : (2*nx + nx^2 + 2*nx*nu + nx)
+
+        new(nx^2 + 2*nx + 2*nx*nu, idx_x, idx_phi, idx_Bm, idx_Bp, idx_S, idx_z)
+    end
+
+end
+struct ptr
+
+    # Problem paramters
     nx::Int64
     nu::Int64
     K::Int64
     dτ::Float64
 
-    # Dynamics and Jacobians
-    f
-    dfx
-    dfu
+    # Hyperparameters
+    Nsub::Int64
 
+    # Dynamics and Jacobians
+    f::Function
+    dfx::Function
+    dfu::Function
+
+    # Reference Trajectories
     xref::Array{Float64,2}
     uref::Array{Float64,2}
-    σref::Array{Float64,1}
+    σref::Float64
 
+    # Discrete Dynamics
+    idx::IDX
     xprop::Array{Float64,2}
     A::Array{Float64,3}
     Bm::Array{Float64,3}
@@ -21,6 +49,6 @@ mutable struct ptr
     z::Array{Float64,2}
 
     function ptr(nx, nu, K, f, dfx, dfu)
-        new(nx, nu, K, 1 / (K - 1), f, dfx, dfu, zeros(nx, K), zeros(nu, K), zeros(K), zeros(K), zeros(nx, nx, K), zeros(nx, nu, K), zeros(nx, nu, K), zeros(nx, K), zeros(nx, K))
+        new(nx, nu, K, 1 / (K - 1), 10, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 0.0, IDX(nx, nu), zeros(nx, K - 1), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1))
     end
 end

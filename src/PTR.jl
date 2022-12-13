@@ -2,8 +2,8 @@ module PTR
 using LinearAlgebra
 using Printf
 
-include("discretize.jl")
 include("structs.jl")
+include("discretize.jl")
 
-export ptr
+export ptr, RK4
 end
