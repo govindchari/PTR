@@ -1,5 +1,6 @@
 using LinearAlgebra
 using Plots
+using BenchmarkTools
 
 include("../src/PTR.jl")
 using .PTR
@@ -22,7 +23,7 @@ let
     K = 11
     Nsub = 10
     p = ptr(nx,nu,K,Nsub,f,dfx,dfu)
-    FOH_discretize(p)
+    @btime FOH_discretize($p)
 
     # dt = 10.0
     # Nsub = 100
