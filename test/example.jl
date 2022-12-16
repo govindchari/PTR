@@ -22,7 +22,6 @@ let
     K = 11
     Nsub = 10
     p = ptr(nx,nu,K,Nsub,f,dfx,dfu)
-    println(p.dτ)
     FOH_discretize(p)
 
     # dt = 10.0
