@@ -41,6 +41,7 @@ function getState(τ::Float64, u::Function, p::ptr)
     end
 end
 function uprop(τ::Float64, p::ptr)
+    # Uses FOH to iterpolate control between nodes
     k = Int(floor(τ / p.dτ)) + 1
     lm = (k * p.dτ - τ) / p.dτ
     lp = (τ - (k - 1) * p.dτ) / p.dτ
@@ -50,7 +51,8 @@ function uprop(τ::Float64, p::ptr)
         return lm * p.uref[:, k] + lp * p.uref[:, k+1]
     end
 end
-function getDTMatrices(τ::Float64, p::ptr)
+function getCTMatrices(τ::Float64, p::ptr)
+    # Gets continuous time matrices
     stateProp = getState(τ, uprop, p)
     A = p.σref * p.dfx(stateProp, uprop(τ, p))
     B = p.σref * p.dfu(stateProp, uprop(τ, p))
@@ -66,7 +68,7 @@ function df(τ::Float64, P::Array{Float64,1}, p::ptr)
     lm = (k * p.dτ - τ) / p.dτ
     lp = (τ - (k - 1) * p.dτ) / p.dτ
 
-    A, B, S, z = getDTMatrices(τ, p)
+    A, B, S, z = getCTMatrices(τ, p)
 
     Px = P[idx.x]
     Pphi = P[idx.phi]
