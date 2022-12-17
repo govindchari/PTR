@@ -36,7 +36,9 @@ function getState(τ::Float64, u::Function, p::ptr)
         return p.xref[:, k]
     else
         df(t, x, p) = p.σref * p.f(x, u(t, p))
-        xprop = RK4(df, p.xref[:, k], t0, dt, p.Nsub, p)
+        h = p.dτ / p.Nsub
+        nsub = Int(ceil(dt / h))
+        xprop = RK4(df, p.xref[:, k], t0, dt, nsub, p)
         return xprop
     end
 end
