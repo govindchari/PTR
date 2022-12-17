@@ -26,7 +26,7 @@ let
     PTR.FOH_discretize(p)
 
     x0 = [0.1; 0.0]
-    u = ones(nu, K)
+    u = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]'
     function df(τ::Float64, z::Array{Float64,1}, p::PTR.ptr)
         # Function for integrator
         k = Int(floor(τ / p.dτ)) + 1
@@ -44,10 +44,10 @@ let
     xc = zeros(nx, K)
     xd[:, 1] = x0
     xc[:, 1] = x0
-    z = x0[1]*cos.((w) * (0:0.1:1))
+    z = x0[1] * cos.((w) * (0:0.1:1))
     for i = 1:K-1
-        xd[:,i+1] = p.A[:,:,i]*xd[:,i] + p.Bm[:,:,i]*u[:,i] + p.Bp[:,:,i]*u[:,i+1]
-        xc[:, i+1] = PTR.RK4(df, xc[:, i], 0.0, p.dτ, 1, p)
+        xd[:, i+1] = p.A[:, :, i] * xd[:, i] + p.Bm[:, :, i] * u[:, i] + p.Bp[:, :, i] * u[:, i+1]
+        xc[:, i+1] = PTR.RK4(df, xc[:, i], (i - 1) * p.dτ, p.dτ, 1, p)
     end
 
     plot(0:10, xd[1, :])

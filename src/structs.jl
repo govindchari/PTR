@@ -50,7 +50,6 @@ struct ptr
     z::Array{Float64,2}
 
     function ptr(nx, nu, K, Nsub, f, dfx, dfu)
-        # new(nx, nu, K, 1 / (K - 1), Nsub, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 0.0, IDX(nx, nu), zeros(nx, K - 1), zeros(nx, K + (Nsub - 1) * (K - 1)), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1))
         new(nx, nu, K, 1 / (K - 1), Nsub, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 1.0, IDX(nx, nu), zeros(nx, K - 1), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1))
     end
 end
