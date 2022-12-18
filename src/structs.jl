@@ -42,7 +42,6 @@ struct ptr
     # Discrete Dynamics
     idx::IDX
     xprop::Array{Float64,2}
-    # xref_hifi::Array{Float64,2}
     A::Array{Float64,3}
     Bm::Array{Float64,3}
     Bp::Array{Float64,3}

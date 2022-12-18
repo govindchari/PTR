@@ -23,7 +23,7 @@ let
     K = 11
     Nsub = 10
     p = PTR.ptr(nx, nu, K, Nsub, f, dfx, dfu)
-    @btime PTR.FOH_discretize($p)
+    PTR.FOH_discretize(p)
 
     x0 = [0.1; 0.0]
     u = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]'
