@@ -28,6 +28,9 @@ struct ptr
 
     # Hyperparameters
     Nsub::Int64
+    wD::Float64
+    wDσ::Float64
+    wnu::Float64
 
     # Dynamics and Jacobians
     f::Function
@@ -48,7 +51,24 @@ struct ptr
     S::Array{Float64,2}
     z::Array{Float64,2}
 
-    function ptr(nx, nu, K, Nsub, f, dfx, dfu)
-        new(nx, nu, K, 1 / (K - 1), Nsub, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 1.0, IDX(nx, nu), zeros(nx, K - 1), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1))
+    # Initial Conditions
+    x0::Array{Float64,1}
+
+    # Rocket parameters
+    mdry::Float64  # Dry mass
+    Fmin::Float64  # Minimum throttle
+    Fmax::Float64  # Max throttle
+    gs::Float64    # Glideslope
+    thmax::Float64 # Max deviation from vertical
+    wmax::Float64  # Max angular rate
+    dmax::Float64  # Max gimbal angle
+
+    function ptr(nx::Int64, nu::Int64, K::Int64, f::Function, dfx::Function, dfu::Function, x0::Array{Float64,1})
+        mdry = 10
+        Nsub = 10
+        wD = 1
+        wDσ = 1
+        wnu = 1e3
+        new(nx, nu, K, 1 / (K - 1), Nsub, wD, wDσ, wnu, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 1.0, IDX(nx, nu), zeros(nx, K - 1), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1), x0, mdry)
     end
 end
