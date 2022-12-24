@@ -54,7 +54,7 @@ struct ptr
     # Initial Conditions
     x0::Array{Float64,1}
 
-    # Rocket parameters
+    # Rocket parameters/constraints
     mdry::Float64  # Dry mass
     Fmin::Float64  # Minimum throttle
     Fmax::Float64  # Max throttle
