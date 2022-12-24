@@ -1,4 +1,4 @@
-function solveSubproblem(p::ptr)
+function solveSubproblem!(p::ptr)
     x = Variable(p.nx, p.K)
     u = Variable(p.nu, p.K)
     σ = Variable(1)
@@ -11,11 +11,12 @@ function solveSubproblem(p::ptr)
     du = u - p.uref
     dσ = σ - p.σref
 
-    r = x[1:3, :]
-    v = x[4:6, :]
-    q = x[7:10, :]
-    w = x[11:13, :]
-    m = x[14, :]
+    idx = p.idx
+    r = x[idx.r, :]
+    v = x[idx.v, :]
+    q = x[idx.q, :]
+    w = x[idx.w, :]
+    m = x[idx.m, :]
 
     # Objective
     objective = σ + p.wD * norm(D) + p.wDσ * norm(Dσ, 1) + p.wnu * norm(nu, 1)
@@ -28,16 +29,14 @@ function solveSubproblem(p::ptr)
     # Boundary Conditions
     # x = [r v q w m]
     push!(constraints, x[:, 1] == p.x0)
-    push!(constraints, x[:, p.K] == zeros(p.nx))
-    push!(constraints, x[7, p.K] == 1.0)
+    push!(constraints, x[:, p.K] == p.xT)
 
     # State Constraints
     for k = 1:p.K
-        push!(constraints, p.mdry - m[k] <= 0)
-        push!(constraints, norm([0 1 0; 0 0 1] * r[:, k]) * tan(p.gs) - [1 0 0] * r[:, k] <= 0)
-        # push!(constraints, cos(p.thmax) <= 1 - 2 * (q[2, k]^2 + q[3, k]^2))
-        push!(constraints, cos(p.thmax) <= 1 - 2 * (sumsquares([0 1 0 0;0 0 1 0]*q[:,k])))
-        push!(constraints, norm(w[:, k]) <= p.wmax)
+        # push!(constraints, p.mdry - m[k] <= 0)
+        # push!(constraints, norm([0 1 0; 0 0 1] * r[:, k]) * tan(p.gs) - [1 0 0] * r[:, k] <= 0)
+        # push!(constraints, norm(w[:, k]) <= p.wmax)
+        # push!(constraints, cos(p.thmax) <= 1 - 2 * (sumsquares([0 1 0 0;0 0 1 0]*q[:,k])))
     end
 
     # Control Constraints

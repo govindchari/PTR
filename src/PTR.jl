@@ -7,6 +7,7 @@ using Printf
 include("structs.jl")
 include("discretize.jl")
 include("subproblem.jl")
+include("solver.jl")
 
-export ptr, RK4, FOH_discretize, solveSubproblem
+export ptr, RK4, FOH_discretize!, solveSubproblem!, initialize!
 end

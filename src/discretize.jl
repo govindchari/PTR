@@ -1,5 +1,4 @@
-function FOH_discretize(p::ptr)
-
+function FOH_discretize!(p::ptr)
     for k = 1:p.K-1
         idx = p.idx
 
@@ -25,7 +24,6 @@ function FOH_discretize(p::ptr)
         p.z[:, k] = Ak * z[idx.z]
 
     end
-
 end
 function getState(τ::Float64, u::Function, p::ptr)
     # Uses RK4 to integrate propagate state from previous node to point between nodes
@@ -87,7 +85,6 @@ function df(τ::Float64, P::Array{Float64,1}, p::ptr)
     dP[idx.z] = F \ z
 
     return dP
-
 end
 function RK4(dz::Function, z0::Array{Float64,1}, t0::Float64, dt::Float64, Nsub::Int64, p::ptr)
     h = dt / Nsub

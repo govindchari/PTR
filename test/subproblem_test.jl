@@ -7,7 +7,6 @@ include("../src/PTR.jl")
 using .PTR
 
 let
-    # Rocket Dynamics (x = [r v q w m])
     g = 9.807
     g0 = 9.807
     Isp = 311.0
@@ -16,10 +15,7 @@ let
     a = 1 / (Isp * g0)
     Inertia = I(3)
 
-    function fun(x, u)
-        return x
-    end
-
+    # Rocket Dynamics (x = [r v q w m])
     function f(x, u)
         v = x[4:6]
         q = x[7:10]
@@ -47,15 +43,16 @@ let
     nu = 3
     K = 11
     Nsub = 10
-    r0 = [10.0;10.0;1000.]
-    v0 = zeros(3)
+    r0 = [0.0;0.0;1000.]
+    v0 = [0.0;0.0;0.]
     q0 = [1.0;0.0;0.0;0.0]
-    w0 = zeros(3)
+    w0 = [0.0;0.0;0.0]
     m0 = 100
     x0 = [r0;v0;q0;w0;m0]
 
     p = PTR.ptr(nx, nu, K, f, dfx, dfu, x0)
-    PTR.FOH_discretize(p)
-    PTR.solveSubproblem(p)
+    PTR.FOH_discretize!(p)
+    PTR.initialize!(p)
+    PTR.solveSubproblem!(p)
 
 end
