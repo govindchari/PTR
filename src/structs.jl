@@ -59,7 +59,6 @@ mutable struct ptr
 
     # Boundary Conditions
     x0::Array{Float64,1}
-    xT::Array{Float64,1}
 
     # Rocket parameters/constraints
     mdry::Float64  # Dry mass
@@ -71,20 +70,18 @@ mutable struct ptr
     dmax::Float64  # Max gimbal angle
 
     function ptr(nx::Int64, nu::Int64, K::Int64, f::Function, dfx::Function, dfu::Function, x0::Array{Float64,1})
-        mdry = 10
-        xT = zeros(nx)
-        xT[7] = 1.0 # Scalar component of quaternion (might cause infeasibility since roll should be free)
+        mdry = 0.277
 
         Nsub = 10
         wD = 1
         wDσ = 1
         wnu = 1e3
-        Fmin = 100
-        Fmax = 100000
-        gs = deg2rad(1.0)
+        Fmin = 0.024
+        Fmax = 0.164
+        gs = deg2rad(45.0)
         thmax = deg2rad(90.0)
-        wmax = 10.0
-        dmax = deg2rad(20.0)
-        new(nx, nu, K, 1 / (K - 1), Nsub, wD, wDσ, wnu, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 0.0, IDX(nx, nu), zeros(nx, K - 1), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1), x0, xT, mdry, Fmin, Fmax, gs, thmax, wmax, dmax)
+        wmax = 143.84
+        dmax = deg2rad(10.0)
+        new(nx, nu, K, 1 / (K - 1), Nsub, wD, wDσ, wnu, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 0.0, IDX(nx, nu), zeros(nx, K - 1), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1), x0, mdry, Fmin, Fmax, gs, thmax, wmax, dmax)
     end
 end

@@ -9,5 +9,5 @@ include("discretize.jl")
 include("subproblem.jl")
 include("solver.jl")
 
-export ptr, RK4, FOH_discretize!, solveSubproblem!, initialize!
+export ptr, RK4, FOH_discretize!, solveSubproblem!, initialize!, solveTraj!
 end

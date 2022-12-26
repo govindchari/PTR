@@ -31,14 +31,14 @@ function getState(τ::Float64, u::Function, p::ptr)
     t0 = (k - 1) * p.dτ
     dt = τ - t0
     if (dt == 0)
-        return p.xref[:, k]
+        xprop = p.xref[:, k]
     else
         df(t, x, p) = p.σref * p.f(x, u(t, p))
         h = p.dτ / p.Nsub
         nsub = Int(ceil(dt / h))
         xprop = RK4(df, p.xref[:, k], t0, dt, nsub, p)
-        return xprop
     end
+    return xprop
 end
 function uprop(τ::Float64, p::ptr)
     # Uses FOH to iterpolate control between nodes
