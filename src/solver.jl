@@ -38,7 +38,7 @@ end
 
 function solveTraj!(p::ptr)
     initialize!(p)
-    for _ = 1:10
+    for _ = 1:15
         FOH_discretize!(p)
         solveSubproblem!(p)
     end

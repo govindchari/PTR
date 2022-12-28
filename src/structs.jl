@@ -31,6 +31,9 @@ struct PARAMS
 
     # Rocket parameters/constraints
     mdry::Float64  # Dry mass
+    cg::Float64
+    Inertia::Diagonal{Float64, Vector{Float64}}
+    Isp::Float64
     Fmin::Float64  # Minimum throttle
     Fmax::Float64  # Max throttle
     gs::Float64    # Glideslope
@@ -38,8 +41,8 @@ struct PARAMS
     wmax::Float64  # Max angular rate
     dmax::Float64  # Max gimbal angle
 
-    function PARAMS(x0, g, mdry, Fmin, Fmax, gs, thmax, wmax, dmax)
-        new(x0, g, mdry, Fmin, Fmax, gs, thmax, wmax, dmax)
+    function PARAMS(x0, g, mdry, cg, Inertia, Isp, Fmin, Fmax, gs, thmax, wmax, dmax)
+        new(x0, g, mdry, cg, Inertia, Isp, Fmin, Fmax, gs, thmax, wmax, dmax)
     end
 end
 mutable struct ptr
@@ -79,11 +82,49 @@ mutable struct ptr
     # Problem paramters
     par::PARAMS
 
-    function ptr(nx::Int64, nu::Int64, K::Int64, f::Function, dfx::Function, dfu::Function, par::PARAMS)
+    function ptr(K::Int64, par::PARAMS)
+        nx = 14
+        nu = 3
         Nsub = 10
         wD = 1
         wDσ = 1
-        wnu = 1e4
+        wnu = 1e5
+
+        g0 = 9.807
+        a = 1/(par.Isp * g0)
+        r_arm = [0; 0; -par.cg]
+
+        # Rocket Dynamics (x = [r v q w m])
+        function f(x, u)
+            v = x[4:6]
+            q = x[7:10]
+            q0 = q[1]
+            q1 = q[2]
+            q2 = q[3]
+            q3 = q[4]
+            w = x[11:13]
+            m = x[14]
+            B = [-q[2] -q[3] -q[4]
+                q[1] -q[4] -q[3]
+                q[4] q[1] -q[2]
+                -q[3] q[2] q[1]]
+            bCi = [q0^2+q1^2-q2^2-q3^2 2*(q1*q2+q0*q3) 2*(q1*q3-q0*q2)
+                2*(q1*q2-q0*q3) q0^2-q1^2+q2^2-q3^2 2*(q2*q3+q0*q1)
+                2*(q1*q3+q0*q2) 2*(q2*q3-q0*q1) q0^2-q1^2-q2^2+q3^2]
+            dr = v
+            dv = bCi' * u / m + [0;0;-par.g]
+            dq = 0.5 * B * w
+            dw = par.Inertia \ (cross(r_arm, u) - cross(w, par.Inertia * w))
+            dm = -a * norm(u)
+            return [dr; dv; dq; dw; dm]
+        end
+        function dfx(x, u)
+            return ForwardDiff.jacobian(dx -> f(dx, u), x)
+        end
+        function dfu(x, u)
+            return ForwardDiff.jacobian(du -> f(x, du), u)
+        end
+
         new(nx, nu, K, 1 / (K - 1), Nsub, wD, wDσ, wnu, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 0.0, zeros(nx, K), IDX(nx, nu), zeros(nx, K - 1), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1), par)
     end
 end

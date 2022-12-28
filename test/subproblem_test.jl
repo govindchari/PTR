@@ -7,10 +7,7 @@ include("../src/PTR.jl")
 using .PTR
 
 let
-    nx = 14
-    nu = 3
     K = 15
-    Nsub = 10
     r0 = [0.64; 0.0; 0.76]
     v0 = [-0.48; 0.0; 0.0]
     th0 = deg2rad(15.0)
@@ -20,45 +17,12 @@ let
     x0 = [r0; v0; q0; w0; m0]
 
     g = 0.108
-    gvec = [0; 0; -g]
-    r_arm = [0; 0; -1e-3]
-    a = 0.0738
     r = 2 / 781.02
     h = 20 / 781.02
     diag = [0.5 * m0 * r^2; (m0 / 12) * (3 * r^2 + h^2); (m0 / 12) * (3 * r^2 + h^2)]
     Inertia = Diagonal(diag)
-
-    # Rocket Dynamics (x = [r v q w m])
-    function f(x, u)
-        v = x[4:6]
-        q = x[7:10]
-        q0 = q[1]
-        q1 = q[2]
-        q2 = q[3]
-        q3 = q[4]
-        w = x[11:13]
-        m = x[14]
-        B = [-q[2] -q[3] -q[4]
-            q[1] -q[4] -q[3]
-            q[4] q[1] -q[2]
-            -q[3] q[2] q[1]]
-        bCi = [q0^2+q1^2-q2^2-q3^2 2*(q1*q2+q0*q3) 2*(q1*q3-q0*q2)
-            2*(q1*q2-q0*q3) q0^2-q1^2+q2^2-q3^2 2*(q2*q3+q0*q1)
-            2*(q1*q3+q0*q2) 2*(q2*q3-q0*q1) q0^2-q1^2-q2^2+q3^2]
-        dr = v
-        dv = bCi' * u / m + gvec
-        dq = 0.5 * B * w
-        dw = Inertia \ (cross(r_arm, u) - cross(w, I * w))
-        dm = -a * norm(u)
-        return [dr; dv; dq; dw; dm]
-    end
-    function dfx(x, u)
-        return ForwardDiff.jacobian(dx -> f(dx, u), x)
-    end
-    function dfu(x, u)
-        return ForwardDiff.jacobian(du -> f(x, du), u)
-    end
-
+    Isp = 1/ (0.0738 * 9.807)
+    cg = 1e-3
     mdry = 0.277
     Fmin = 0.024
     Fmax = 0.164
@@ -66,16 +30,17 @@ let
     thmax = deg2rad(90.0)
     wmax = 143.84
     dmax = deg2rad(10.0)
-    par = PTR.PARAMS(x0, g, mdry, Fmin, Fmax, gs, thmax, wmax, dmax)
 
-    p = PTR.ptr(nx, nu, K, f, dfx, dfu, par)
+    par = PTR.PARAMS(x0, g, mdry, cg, Inertia, Isp, Fmin, Fmax, gs, thmax, wmax, dmax)
+    p = PTR.ptr(K, par)
+    
     PTR.solveTraj!(p)
     un = []
     tvc = []
     th = []
     qnorm = []
     nu_norm = []
-    ui = zeros(nu, p.K)
+    ui = zeros(p.nu, p.K)
     for k=1:K
         append!(un, norm(p.uref[:,k]))
         append!(tvc, acos(p.uref[3,k]/norm(p.uref[:,k])))
