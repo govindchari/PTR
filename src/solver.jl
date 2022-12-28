@@ -35,11 +35,17 @@ function initialize!(p::ptr)
     end
     p.σref += sqrt(2 * norm(par.x0[idx.r]) / par.g)
 end
-
+function log(k::Int64, p::ptr)
+    @printf("%3d   %10.3e  %9.2e  %9.2e  %9.2e\n",
+        k, p.σref, norm(reshape(p.vc, (p.nx * (p.K - 1), 1))), norm(p.Δ), p.Δσ)
+end
 function solveTraj!(p::ptr)
     initialize!(p)
-    for _ = 1:15
+    println("iter       σ         |ν|        |Δ|        |Δσ|")
+    println("--------------------------------------------------")
+    for k = 1:25
         FOH_discretize!(p)
         solveSubproblem!(p)
+        log(k, p)
     end
 end

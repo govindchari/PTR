@@ -4,8 +4,8 @@ function solveSubproblem!(p::ptr)
     σ = Variable(1)
 
     nu = Variable(p.nx * (p.K - 1))
-    D = Variable(p.K)
-    Dσ = Variable(1)
+    Δ = Variable(p.K)
+    Δσ = Variable(1)
 
     dx = x - p.xref
     du = u - p.uref
@@ -20,11 +20,11 @@ function solveSubproblem!(p::ptr)
     m = x[idx.m, :]
 
     # Objective
-    objective = (σ + p.wD * norm(D) + p.wDσ * norm(Dσ, 1) + p.wnu * sumsquares(nu)) / p.wnu
+    objective = (σ + p.wD * norm(Δ) + p.wDσ * norm(Δσ, 1) + p.wnu * sumsquares(nu)) / p.wnu
 
     # Dynamics Constraint
     constraints = Constraint[
-        x[:, k+1] == p.A[:, :, k] * x[:, k] + p.Bm[:, :, k] * u[:, k] + p.Bp[:, :, k] * u[:, k+1] + p.S[:, k] * σ + p.z[:, k] + nu[(k-1)*p.nx + 1:k*p.nx] for k in 1:p.K-1
+        x[:, k+1] == p.A[:, :, k] * x[:, k] + p.Bm[:, :, k] * u[:, k] + p.Bp[:, :, k] * u[:, k+1] + p.S[:, k] * σ + p.z[:, k] + nu[(k-1)*p.nx+1:k*p.nx] for k in 1:p.K-1
     ]
 
     # Boundary Conditions
@@ -53,14 +53,16 @@ function solveSubproblem!(p::ptr)
 
     # Trust Regions
     for k = 1:p.K
-        push!(constraints, norm(dot(dx[:, k], dx[:, k]) + dot(du[:, k], du[:, k]), 2) <= D[k])
+        push!(constraints, norm(dot(dx[:, k], dx[:, k]) + dot(du[:, k], du[:, k]), 2) <= Δ[k])
     end
-    push!(constraints, norm(dσ, 2) <= Dσ)
+    push!(constraints, norm(dσ, 2) <= Δσ)
 
     prob = minimize(objective, constraints)
-    solve!(prob, ECOS.Optimizer)
+    solve!(prob, ECOS.Optimizer, silent_solver=true)
     p.xref = evaluate(x)
     p.uref = evaluate(u)
     p.σref = evaluate(σ)
     p.vc = reshape(evaluate(nu), (p.nx, p.K - 1))
+    p.Δ = evaluate(Δ)
+    p.Δσ = evaluate(Δσ)
 end

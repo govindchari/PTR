@@ -32,7 +32,7 @@ struct PARAMS
     # Rocket parameters/constraints
     mdry::Float64  # Dry mass
     cg::Float64
-    Inertia::Diagonal{Float64, Vector{Float64}}
+    Inertia::Diagonal{Float64,Vector{Float64}}
     Isp::Float64
     Fmin::Float64  # Minimum throttle
     Fmax::Float64  # Max throttle
@@ -69,6 +69,8 @@ mutable struct ptr
     uref::Array{Float64,2}
     σref::Float64
     vc::Array{Float64,2}
+    Δ::Array{Float64, 1}
+    Δσ::Float64
 
     # Discrete Dynamics
     idx::IDX
@@ -91,7 +93,7 @@ mutable struct ptr
         wnu = 1e5
 
         g0 = 9.807
-        a = 1/(par.Isp * g0)
+        a = 1 / (par.Isp * g0)
         r_arm = [0; 0; -par.cg]
 
         # Rocket Dynamics (x = [r v q w m])
@@ -112,7 +114,7 @@ mutable struct ptr
                 2*(q1*q2-q0*q3) q0^2-q1^2+q2^2-q3^2 2*(q2*q3+q0*q1)
                 2*(q1*q3+q0*q2) 2*(q2*q3-q0*q1) q0^2-q1^2-q2^2+q3^2]
             dr = v
-            dv = bCi' * u / m + [0;0;-par.g]
+            dv = bCi' * u / m + [0; 0; -par.g]
             dq = 0.5 * B * w
             dw = par.Inertia \ (cross(r_arm, u) - cross(w, par.Inertia * w))
             dm = -a * norm(u)
@@ -125,6 +127,6 @@ mutable struct ptr
             return ForwardDiff.jacobian(du -> f(x, du), u)
         end
 
-        new(nx, nu, K, 1 / (K - 1), Nsub, wD, wDσ, wnu, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 0.0, zeros(nx, K), IDX(nx, nu), zeros(nx, K - 1), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1), par)
+        new(nx, nu, K, 1 / (K - 1), Nsub, wD, wDσ, wnu, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 0.0, zeros(nx, K), zeros(K), 0.0, IDX(nx, nu), zeros(nx, K - 1), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1), par)
     end
 end
