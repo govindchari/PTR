@@ -90,7 +90,7 @@ mutable struct ptr
         Nsub = 10
         wD = 1
         wDσ = 1
-        wnu = 1e5
+        wnu = 5e4
 
         g0 = 9.807
         a = 1 / (par.Isp * g0)

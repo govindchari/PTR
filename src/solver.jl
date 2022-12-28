@@ -43,7 +43,7 @@ function solveTraj!(p::ptr)
     initialize!(p)
     println("iter       σ         |ν|        |Δ|        |Δσ|")
     println("--------------------------------------------------")
-    for k = 1:25
+    for k = 1:10
         FOH_discretize!(p)
         solveSubproblem!(p)
         log(k, p)
