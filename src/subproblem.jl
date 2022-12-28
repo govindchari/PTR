@@ -3,7 +3,7 @@ function solveSubproblem!(p::ptr)
     u = Variable(p.nu, p.K)
     σ = Variable(1)
 
-    nu = Variable(p.nx, (p.K - 1))
+    nu = Variable(p.nx * (p.K - 1))
     D = Variable(p.K)
     Dσ = Variable(1)
 
@@ -12,6 +12,7 @@ function solveSubproblem!(p::ptr)
     dσ = σ - p.σref
 
     idx = p.idx
+    par = p.par
     r = x[idx.r, :]
     v = x[idx.v, :]
     q = x[idx.q, :]
@@ -19,16 +20,16 @@ function solveSubproblem!(p::ptr)
     m = x[idx.m, :]
 
     # Objective
-    objective = σ + p.wD * norm(D) + p.wDσ * norm(Dσ, 1) + p.wnu * sumsquares(nu)
+    objective = (σ + p.wD * norm(D) + p.wDσ * norm(Dσ, 1) + p.wnu * sumsquares(nu)) / p.wnu
 
     # Dynamics Constraint
     constraints = Constraint[
-        x[:, k+1] == p.A[:, :, k] * x[:, k] + p.Bm[:, :, k] * u[:, k] + p.Bp[:, :, k] * u[:, k+1] + p.S[:, k] * σ + p.z[:, k] + nu[:, k] for k in 1:p.K-1
+        x[:, k+1] == p.A[:, :, k] * x[:, k] + p.Bm[:, :, k] * u[:, k] + p.Bp[:, :, k] * u[:, k+1] + p.S[:, k] * σ + p.z[:, k] + nu[(k-1)*p.nx + 1:k*p.nx] for k in 1:p.K-1
     ]
 
     # Boundary Conditions
     # x = [r v q w m]
-    push!(constraints, x[:, 1] == p.x0)
+    push!(constraints, x[:, 1] == par.x0)
     push!(constraints, x[idx.r, p.K] == zeros(3))
     push!(constraints, x[idx.v, p.K] == zeros(3))
     push!(constraints, x[idx.q, p.K] == [1.0; 0.0; 0.0; 0.0])
@@ -36,18 +37,18 @@ function solveSubproblem!(p::ptr)
 
     # State Constraints
     for k = 1:p.K
-        push!(constraints, p.mdry - m[k] <= 0)
-        push!(constraints, norm([1 0 0; 0 1 0] * r[:, k]) * tan(p.gs) - [0 0 1] * r[:, k] <= 0)
-        push!(constraints, norm(w[:, k]) <= p.wmax)
-        push!(constraints, cos(p.thmax) <= 1 - 2 * (sumsquares([0 1 0 0; 0 0 1 0] * q[:, k])))
+        push!(constraints, par.mdry - m[k] <= 0)
+        push!(constraints, norm([1 0 0; 0 1 0] * r[:, k]) * tan(par.gs) - [0 0 1] * r[:, k] <= 0)
+        push!(constraints, norm(w[:, k]) <= par.wmax)
+        push!(constraints, cos(par.thmax) <= 1 - 2 * (norm([0 0 1 0; 0 0 0 1] * q[:, k])))
     end
 
     # Control Constraints
     Xi(k) = p.uref[:, k] / norm(p.uref[:, k])
     for k = 1:p.K
-        push!(constraints, norm(u[:, k]) <= p.Fmax)
-        push!(constraints, p.Fmin <= dot(Xi(k), u[:, k]))
-        push!(constraints, cos(p.dmax) * norm(u[:, k]) <= u[3, k])
+        push!(constraints, norm(u[:, k]) <= par.Fmax)
+        push!(constraints, par.Fmin <= dot(Xi(k), u[:, k]))
+        push!(constraints, cos(par.dmax) * norm(u[:, k]) <= u[3, k])
     end
 
     # Trust Regions
@@ -61,4 +62,5 @@ function solveSubproblem!(p::ptr)
     p.xref = evaluate(x)
     p.uref = evaluate(u)
     p.σref = evaluate(σ)
+    p.vc = reshape(evaluate(nu), (p.nx, p.K - 1))
 end

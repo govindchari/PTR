@@ -7,21 +7,14 @@ include("../src/PTR.jl")
 using .PTR
 
 let
-    # g = 9.807
-    # g0 = 9.807
-    # Isp = 311.0
-    # gvec = [0; 0; -g]
-    # r_arm = [0; 0; -1]
-    # a = 1 / (Isp * g0)
-    # Inertia = I(3)
-
     nx = 14
     nu = 3
     K = 15
     Nsub = 10
     r0 = [0.64; 0.0; 0.76]
     v0 = [-0.48; 0.0; 0.0]
-    q0 = [sqrt(2)/2; 0.0; 0.0; sqrt(2)/2]
+    th0 = deg2rad(15.0)
+    q0 = [cos(th0/2); 0.0; 0.0; sin(th0/2)]
     w0 = [0.0; 0.0; 0.0]
     m0 = 1
     x0 = [r0; v0; q0; w0; m0]
@@ -30,8 +23,8 @@ let
     gvec = [0; 0; -g]
     r_arm = [0; 0; -1e-3]
     a = 0.0738
-    r = 6 / 781.02
-    h = 30 / 781.02
+    r = 2 / 781.02
+    h = 20 / 781.02
     diag = [0.5 * m0 * r^2; (m0 / 12) * (3 * r^2 + h^2); (m0 / 12) * (3 * r^2 + h^2)]
     Inertia = Diagonal(diag)
 
@@ -65,29 +58,45 @@ let
     function dfu(x, u)
         return ForwardDiff.jacobian(du -> f(x, du), u)
     end
-    function df(τ::Float64, z::Array{Float64,1}, p::PTR.ptr)
-        # Function for integrator
-        k = Int(floor(τ / p.dτ)) + 1
-        lm = (k * p.dτ - τ) / p.dτ
-        lp = (τ - (k - 1) * p.dτ) / p.dτ
-        if (k == p.K)
-            u_ = u[:, k]
-        else
-            u_ = lm * u[:, k] + lp * u[:, k+1]
-        end
-        return f(z, u_)
-    end
 
-    p = PTR.ptr(nx, nu, K, f, dfx, dfu, x0)
+    mdry = 0.277
+    Fmin = 0.024
+    Fmax = 0.164
+    gs = deg2rad(45.0)
+    thmax = deg2rad(90.0)
+    wmax = 143.84
+    dmax = deg2rad(10.0)
+    par = PTR.PARAMS(x0, g, mdry, Fmin, Fmax, gs, thmax, wmax, dmax)
+
+    p = PTR.ptr(nx, nu, K, f, dfx, dfu, par)
     PTR.solveTraj!(p)
-    plot(p.xref[1, :], p.xref[3, :])
-    quiver!(p.xref[1, :], p.xref[3, :], quiver=(p.uref[1, :], p.uref[3, :]))
-
     un = []
     tvc = []
+    th = []
+    qnorm = []
+    nu_norm = []
+    ui = zeros(nu, p.K)
     for k=1:K
         append!(un, norm(p.uref[:,k]))
         append!(tvc, acos(p.uref[3,k]/norm(p.uref[:,k])))
+        q0 = p.xref[p.idx.q,k][1]
+        q1 = p.xref[p.idx.q,k][2]
+        q2 = p.xref[p.idx.q,k][3]
+        q3 = p.xref[p.idx.q,k][4]
+        bCi = [q0^2+q1^2-q2^2-q3^2 2*(q1*q2+q0*q3) 2*(q1*q3-q0*q2)
+        2*(q1*q2-q0*q3) q0^2-q1^2+q2^2-q3^2 2*(q2*q3+q0*q1)
+        2*(q1*q3+q0*q2) 2*(q2*q3-q0*q1) q0^2-q1^2-q2^2+q3^2]
+        ui[:,k] = bCi'*p.uref[:,k]
+        append!(th, 2*acos(clamp(q0, -1, 1)))
+        append!(qnorm, norm(p.xref[p.idx.q,k]))
+        if k != K
+            append!(nu_norm, norm(p.vc[:,k]))
+        end
     end
-    plot(rad2deg.(tvc))
+    plot(p.xref[1, :], p.xref[3, :])
+    quiver!(p.xref[1, :], p.xref[3, :], quiver=(ui[1, :], ui[3, :]))
+    plot(qnorm)
+    # plot(nu_norm)
+    # plot(rad2deg.(th))
+    # plot!(ones(p.K)*p.thmax)
 end

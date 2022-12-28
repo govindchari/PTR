@@ -24,6 +24,24 @@ struct IDX
     end
 
 end
+struct PARAMS
+    # Initial Condition
+    x0::Array{Float64,1}
+    g::Float64 # Gravitatinal constraints
+
+    # Rocket parameters/constraints
+    mdry::Float64  # Dry mass
+    Fmin::Float64  # Minimum throttle
+    Fmax::Float64  # Max throttle
+    gs::Float64    # Glideslope
+    thmax::Float64 # Max deviation from vertical
+    wmax::Float64  # Max angular rate
+    dmax::Float64  # Max gimbal angle
+
+    function PARAMS(x0, g, mdry, Fmin, Fmax, gs, thmax, wmax, dmax)
+        new(x0, g, mdry, Fmin, Fmax, gs, thmax, wmax, dmax)
+    end
+end
 mutable struct ptr
 
     # Problem paramters
@@ -32,7 +50,7 @@ mutable struct ptr
     K::Int64
     dτ::Float64
 
-    # Hyperparameters
+    # PTR Hyperparameters
     Nsub::Int64
     wD::Float64
     wDσ::Float64
@@ -47,6 +65,7 @@ mutable struct ptr
     xref::Array{Float64,2}
     uref::Array{Float64,2}
     σref::Float64
+    vc::Array{Float64,2}
 
     # Discrete Dynamics
     idx::IDX
@@ -57,31 +76,14 @@ mutable struct ptr
     S::Array{Float64,2}
     z::Array{Float64,2}
 
-    # Boundary Conditions
-    x0::Array{Float64,1}
+    # Problem paramters
+    par::PARAMS
 
-    # Rocket parameters/constraints
-    mdry::Float64  # Dry mass
-    Fmin::Float64  # Minimum throttle
-    Fmax::Float64  # Max throttle
-    gs::Float64    # Glideslope
-    thmax::Float64 # Max deviation from vertical
-    wmax::Float64  # Max angular rate
-    dmax::Float64  # Max gimbal angle
-
-    function ptr(nx::Int64, nu::Int64, K::Int64, f::Function, dfx::Function, dfu::Function, x0::Array{Float64,1})
-        mdry = 0.277
-
+    function ptr(nx::Int64, nu::Int64, K::Int64, f::Function, dfx::Function, dfu::Function, par::PARAMS)
         Nsub = 10
         wD = 1
         wDσ = 1
-        wnu = 1e3
-        Fmin = 0.024
-        Fmax = 0.164
-        gs = deg2rad(45.0)
-        thmax = deg2rad(90.0)
-        wmax = 143.84
-        dmax = deg2rad(10.0)
-        new(nx, nu, K, 1 / (K - 1), Nsub, wD, wDσ, wnu, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 0.0, IDX(nx, nu), zeros(nx, K - 1), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1), x0, mdry, Fmin, Fmax, gs, thmax, wmax, dmax)
+        wnu = 1e4
+        new(nx, nu, K, 1 / (K - 1), Nsub, wD, wDσ, wnu, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 0.0, zeros(nx, K), IDX(nx, nu), zeros(nx, K - 1), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1), par)
     end
 end
