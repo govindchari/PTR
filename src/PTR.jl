@@ -2,6 +2,7 @@ module PTR
 using LinearAlgebra
 using ForwardDiff
 using PyPlot
+using Plots
 using Convex, ECOS
 using Printf
 
@@ -11,5 +12,5 @@ include("subproblem.jl")
 include("solver.jl")
 include("postprocess.jl")
 
-export ptr, PARAMS, solveTraj!, plotall
+export ptr, PARAMS, solveTraj!, plotall, animateTrajectory
 end
