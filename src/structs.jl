@@ -68,13 +68,19 @@ mutable struct ptr
     xref::Array{Float64,2}
     uref::Array{Float64,2}
     σref::Float64
+
+    # Integrated Trajectory
+    xint::Array{Float64,2}
+
+    # Virtual Control and Trust Region Size
     vc::Array{Float64,2}
-    Δ::Array{Float64, 1}
+    Δ::Array{Float64,1}
     Δσ::Float64
 
     # Discrete Dynamics
     idx::IDX
     xprop::Array{Float64,2}
+    def::Array{Float64,1}
     A::Array{Float64,3}
     Bm::Array{Float64,3}
     Bp::Array{Float64,3}
@@ -127,6 +133,6 @@ mutable struct ptr
             return ForwardDiff.jacobian(du -> f(x, du), u)
         end
 
-        new(nx, nu, K, 1 / (K - 1), Nsub, wD, wDσ, wnu, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 0.0, zeros(nx, K), zeros(K), 0.0, IDX(nx, nu), zeros(nx, K - 1), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1), par)
+        new(nx, nu, K, 1 / (K - 1), Nsub, wD, wDσ, wnu, f, dfx, dfu, zeros(nx, K), zeros(nu, K), 0.0, zeros(nx, K + (K - 1) * (Nsub - 1)), zeros(nx, K), zeros(K), 0.0, IDX(nx, nu), zeros(nx, K - 1), zeros(K - 1), zeros(nx, nx, K - 1), zeros(nx, nu, K - 1), zeros(nx, nu, K - 1), zeros(nx, K - 1), zeros(nx, K - 1), par)
     end
 end

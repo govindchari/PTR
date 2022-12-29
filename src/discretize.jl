@@ -16,6 +16,7 @@ function FOH_discretize!(p::ptr)
 
         # Package discrete time matrices (Multiply by Ak)
         p.xprop[:, k] = z[idx.x]
+        p.def[k] = norm(z[idx.x] - p.xref[:, k+1])
         Ak = reshape(z[idx.phi], (p.nx, p.nx))
         p.A[:, :, k] = Ak
         p.Bm[:, :, k] = Ak * reshape(z[idx.Bm], (p.nx, p.nu))
@@ -25,7 +26,7 @@ function FOH_discretize!(p::ptr)
 
     end
 end
-function getState(τ::Float64, u::Function, p::ptr)
+function getState(τ::Float64, p::ptr)
     # Uses RK4 to integrate propagate state from previous node to point between nodes
     k = Int(floor(τ / p.dτ)) + 1
     t0 = (k - 1) * p.dτ
@@ -33,7 +34,7 @@ function getState(τ::Float64, u::Function, p::ptr)
     if (dt == 0)
         xprop = p.xref[:, k]
     else
-        df(t, x, p) = p.σref * p.f(x, u(t, p))
+        df(t, x, p) = p.σref * p.f(x, uprop(t, p))
         h = p.dτ / p.Nsub
         nsub = Int(ceil(dt / h))
         xprop = RK4(df, p.xref[:, k], t0, dt, nsub, p)
@@ -53,7 +54,7 @@ function uprop(τ::Float64, p::ptr)
 end
 function getCTMatrices(τ::Float64, p::ptr)
     # Gets continuous time matrices
-    stateProp = getState(τ, uprop, p)
+    stateProp = getState(τ, p)
     A = p.σref * p.dfx(stateProp, uprop(τ, p))
     B = p.σref * p.dfu(stateProp, uprop(τ, p))
     S = p.f(stateProp, uprop(τ, p))

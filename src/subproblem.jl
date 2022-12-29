@@ -29,7 +29,12 @@ function solveSubproblem!(p::ptr)
 
     # Boundary Conditions
     # x = [r v q w m]
-    push!(constraints, x[:, 1] == par.x0)
+    push!(constraints, x[idx.r, 1] == par.x0[idx.r])
+    push!(constraints, x[idx.v, 1] == par.x0[idx.v])
+    push!(constraints, x[idx.q, 1] == par.x0[idx.q])
+    push!(constraints, x[idx.w, 1] == par.x0[idx.w])
+    push!(constraints, x[idx.m, 1] == par.x0[idx.m])
+
     push!(constraints, x[idx.r, p.K] == zeros(3))
     push!(constraints, x[idx.v, p.K] == zeros(3))
     push!(constraints, x[idx.q, p.K] == [1.0; 0.0; 0.0; 0.0])
