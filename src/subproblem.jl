@@ -45,7 +45,7 @@ function solveSubproblem!(p::ptr)
         push!(constraints, par.mdry - m[k] <= 0)
         push!(constraints, norm([1 0 0; 0 1 0] * r[:, k]) * tan(par.gs) - [0 0 1] * r[:, k] <= 0)
         push!(constraints, norm(w[:, k]) <= par.wmax)
-        push!(constraints, cos(par.thmax) <= 1 - 2 * (norm([0 0 1 0; 0 0 0 1] * q[:, k])))
+        push!(constraints, cos(par.thmax) <= 1 - 2 * (sumsquares([0 1 0 0; 0 0 1 0] * q[:, k])))
     end
 
     # Control Constraints
