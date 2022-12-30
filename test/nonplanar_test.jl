@@ -8,7 +8,7 @@ let
     # Initial Conditions
     r0 = [0.64; 0.0; 0.76]
     v0 = [-0.48; 0.3; 0.0]
-    th0 = deg2rad(0.0)
+    th0 = deg2rad(60.0) # Remove q0 initial condition in subproblem to recreate plot
     q0 = [cos(th0 / 2); 0.0; sin(th0 / 2); 0.0]
     w0 = [0.0; 0.0; 0.0]
     m0 = 1
