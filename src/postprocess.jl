@@ -9,7 +9,39 @@ function getTrajectory(p::ptr)
     end
     println(norm(p.xint[1:3, p.K+(p.K-1)*(p.Nsub-1)]) * 781.02)
 end
+function animatePlanarTrajectory(p::ptr)
+
+    # Nonplanar Parameters
+    scale = 0.1
+    xmin = -1
+    xmax = 1
+    zmin = 0
+    zmax = 1
+
+    bhat = zeros(3, p.K)
+    ui = zeros(p.nu, p.K)
+    for k = 1:p.K
+        q0 = p.xref[p.idx.q, k][1]
+        q1 = p.xref[p.idx.q, k][2]
+        q2 = p.xref[p.idx.q, k][3]
+        q3 = p.xref[p.idx.q, k][4]
+        bCi = [q0^2+q1^2-q2^2-q3^2 2*(q1*q2+q0*q3) 2*(q1*q3-q0*q2)
+            2*(q1*q2-q0*q3) q0^2-q1^2+q2^2-q3^2 2*(q2*q3+q0*q1)
+            2*(q1*q3+q0*q2) 2*(q2*q3-q0*q1) q0^2-q1^2-q2^2+q3^2]
+        bhat[:, k] = scale * (bCi' * [0; 0; 1])/norm((bCi' * [0; 0; 1]))
+        ui[:, k] = 2 * scale * bCi' * p.uref[:, k]
+    end
+    anim = @animate for k = 1:p.K
+        Plots.plot([p.xref[1, k],p.xref[1, k]+bhat[1, k]], [p.xref[3, k],p.xref[3, k]+bhat[3, k]], xlims=(xmin, xmax), ylim=(zmin, zmax), xlabel = "Downrange", ylabel = "Altitude", linewidth=2, color=:blue, label="Rocket")
+        Plots.plot!([p.xref[1, k],p.xref[1, k]-ui[1, k]], [p.xref[3, k],p.xref[3, k]-ui[3, k]], linewidth=2, color=:red, label="Thrust Vector")
+        Plots.plot!(p.xref[1, 1:k], p.xref[3, 1:k], color=:black, label="Trajectory")
+        title!("Rocket Landing Trajectory")
+    end
+    gif(anim, "mygif.gif", fps=10)
+end
 function animateTrajectory(p::ptr)
+
+    # Nonplanar Parameters
     scale = 0.1
     xmin = -1
     xmax = 1
@@ -28,7 +60,7 @@ function animateTrajectory(p::ptr)
         bCi = [q0^2+q1^2-q2^2-q3^2 2*(q1*q2+q0*q3) 2*(q1*q3-q0*q2)
             2*(q1*q2-q0*q3) q0^2-q1^2+q2^2-q3^2 2*(q2*q3+q0*q1)
             2*(q1*q3+q0*q2) 2*(q2*q3-q0*q1) q0^2-q1^2-q2^2+q3^2]
-        bhat[:, k] = scale * bCi' * [0; 0; 1]
+        bhat[:, k] = scale * (bCi' * [0; 0; 1])/norm((bCi' * [0; 0; 1]))
         ui[:, k] = 1.5 * scale * bCi' * p.uref[:, k]
     end
     anim = @animate for k = 1:p.K
@@ -45,11 +77,8 @@ function animateTrajectory(p::ptr)
         Plots.plot!(p.xref[1, 1:k], ymax * ones(k), p.xref[3, 1:k], linestyle=:dash, color=:black, primary=false)
 
         title!("Rocket Landing Trajectory")
-
-
     end
     gif(anim, "mygif.gif", fps=10)
-
 end
 function plotall(p::ptr)
     un = []

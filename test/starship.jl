@@ -6,9 +6,9 @@ using .PTR
 
 let
     # Initial Conditions
-    r0 = [0.64; 0.0; 0.76]
-    v0 = [-0.48; 0.0; 0.0]
-    th0 = deg2rad(60.0)
+    r0 = [0.0; 0.0; 1.0]
+    v0 = [0.0; 0.0; 0.0]
+    th0 = deg2rad(-90.0)
     q0 = [cos(th0 / 2); 0.0; sin(th0 / 2); 0.0]
     w0 = [0.0; 0.0; 0.0]
     m0 = 1
@@ -30,10 +30,10 @@ let
     gs = deg2rad(45.0)
     thmax = deg2rad(90.0)
     wmax = 143.84
-    dmax = deg2rad(10.0)
+    dmax = deg2rad(15.0)
 
     # Hyperparameters
-    K = 25
+    K = 50
     Nsub = 10
     wD = 1
     wDσ = 1
@@ -49,5 +49,6 @@ let
 
     # Solve problem
     PTR.solveTraj!(p)
+    PTR.animatePlanarTrajectory(p)
     PTR.plotall(p)
 end
