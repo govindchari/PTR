@@ -8,7 +8,7 @@ let
     # Initial Conditions
     r0 = [0.64; 0.0; 0.76]
     v0 = [-0.48; 0.0; 0.0]
-    th0 = deg2rad(60.0)
+    th0 = deg2rad(60.0) # Remove q0 initial condition in subproblem to recreate plot
     q0 = [cos(th0 / 2); 0.0; sin(th0 / 2); 0.0]
     w0 = [0.0; 0.0; 0.0]
     m0 = 1
@@ -28,7 +28,7 @@ let
     Fmin = 0.024
     Fmax = 0.164
     gs = deg2rad(45.0)
-    thmax = deg2rad(90.0)
+    thmax = deg2rad(60.0)
     wmax = 143.84
     dmax = deg2rad(10.0)
 
@@ -49,5 +49,6 @@ let
 
     # Solve problem
     PTR.solveTraj!(p)
+    PTR.animatePlanarTrajectory(p)
     PTR.plotall(p)
 end
