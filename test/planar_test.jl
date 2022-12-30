@@ -33,7 +33,7 @@ let
     dmax = deg2rad(10.0)
 
     # Hyperparameters
-    K = 25
+    K = 50
     Nsub = 10
     wD = 1
     wDσ = 1
