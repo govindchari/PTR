@@ -12,5 +12,5 @@ include("subproblem.jl")
 include("solver.jl")
 include("postprocess.jl")
 
-export ptr, PARAMS, solveTraj!, plotall, animateTrajectory
+export ptr, PARAMS, solveTraj!, plotall, animateTrajectory, animatePlanarTrajectory
 end
